@@ -4,6 +4,7 @@ import {map, Observable, of, startWith} from "rxjs";
 import {AppState} from "./interface/app-state";
 import {CustomResponse} from "./interface/custom-response";
 import {DataState} from "./enum/data-state.enum";
+import {Status} from "./enum/status.enum";
 import {catchError} from "rxjs/operators";
 
 @Component({
@@ -15,6 +16,7 @@ export class AppComponent implements OnInit {
   title = 'server-manager-frontend-application';
   appState$: Observable<AppState<CustomResponse>>;
   readonly DataState = DataState;
+  readonly Status = Status;
 
   constructor(private serverService: ServerService) {
   };
