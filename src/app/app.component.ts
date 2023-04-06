@@ -14,6 +14,7 @@ import {catchError} from "rxjs/operators";
 export class AppComponent implements OnInit {
   title = 'server-manager-frontend-application';
   appState$: Observable<AppState<CustomResponse>>;
+  readonly DataState = DataState;
 
   constructor(private serverService: ServerService) {
   };
