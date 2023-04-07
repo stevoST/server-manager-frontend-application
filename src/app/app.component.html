@@ -56,16 +56,16 @@
               <td>{{ server.type }}</td>
               <td>
                 <span class="badge"
-                [ngClass]="[server.status === Status.SERVER_UP ? ' badge-success' : ' badge-danger']">
+                      [ngClass]="[server.status === Status.SERVER_UP ? ' badge-success' : ' badge-danger']">
                   {{ server.status === Status.SERVER_UP ? 'SERVER UP' : 'SERVER DOWN'}}
                 </span>
               </td>
               <td>
                 <a style="cursor: pointer;">
                   <i *ngIf="(filterStatus$ | async )=== '' || (filterStatus$ | async) !== server.ipAddress"
-                    class="material-icons" title="Ping server">&#xe328;</i>
+                     class="material-icons" title="Ping server">&#xe328;</i>
                   <i *ngIf="(filterStatus$ | async) === server.ipAddress"
-                    class="fa fa-spinner fa-spin" style="font-size:24px"></i>
+                     class="fa fa-spinner fa-spin" style="font-size:24px"></i>
                 </a>
               </td>
               <td>
@@ -78,7 +78,7 @@
         </ng-container>
         <ng-container *ngSwitchCase="DataState.ERROR_STATE">
           <div class="alert-danger">
-            error
+            {{ appState.error }}
           </div>
         </ng-container>
       </ng-container>
