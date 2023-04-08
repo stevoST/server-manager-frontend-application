@@ -32,7 +32,10 @@ export class AppComponent implements OnInit {
       .pipe(
         map(response => {
           this.dataSubject.next(response);
-          return {dataState: DataState.LOADED_STATE, appData: {...response, data: {servers: response.data.servers.reverse()}}}
+          return {
+            dataState: DataState.LOADED_STATE,
+            appData: {...response, data: {servers: response.data.servers.reverse()}}
+          }
         }),
         startWith({dataState: DataState.LOADING_STATE}),
         catchError((error: string) => {
@@ -51,6 +54,26 @@ export class AppComponent implements OnInit {
             server.id === response.data.server.id);
           this.dataSubject.value.data.servers[index] = response.data.server;
           this.filterSubject.next('');
+          return {dataState: DataState.LOADED_STATE, appData: this.dataSubject.value}
+        }),
+        startWith({dataState: DataState.LOADED_STATE, appData: this.dataSubject.value}),
+        catchError((error: string) => {
+          this.filterSubject.next('');
+          return of({dataState: DataState.ERROR_STATE, error});
+        })
+      );
+  };
+
+  deleteServer(server: Server): void {
+    this.appState$ = this.serverService.delete$(server.id)
+      .pipe(
+        map(response => {
+          this.dataSubject.next(
+            {
+              ...response, data:
+                {servers: this.dataSubject.value.data.servers.filter(s => s.id !== server.id)}
+            }
+          )
           return {dataState: DataState.LOADED_STATE, appData: this.dataSubject.value}
         }),
         startWith({dataState: DataState.LOADED_STATE, appData: this.dataSubject.value}),
