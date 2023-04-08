@@ -13,11 +13,10 @@ import {catchError} from "rxjs/operators";
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-  title = 'server-manager-frontend-application';
   appState$: Observable<AppState<CustomResponse>>;
   readonly DataState = DataState;
   readonly Status = Status;
-  private filterSubject = new BehaviorSubject<String>('');
+  private filterSubject = new BehaviorSubject<string>('');
   private dataSubject = new BehaviorSubject<CustomResponse>(null);
   filterStatus$ = this.filterSubject.asObservable();
 
@@ -33,7 +32,7 @@ export class AppComponent implements OnInit {
         }),
         startWith({dataState: DataState.LOADING_STATE}),
         catchError((error: string) => {
-          return of({dataState: DataState.ERROR_STATE, error})
+          return of({dataState: DataState.ERROR_STATE, error});
         })
       );
   };
@@ -48,12 +47,26 @@ export class AppComponent implements OnInit {
             server.id === response.data.server.id);
           this.dataSubject.value.data.servers[index] = response.data.server;
           this.filterSubject.next('');
+          return {dataState: DataState.LOADED_STATE, appData: this.dataSubject.value}
+        }),
+        startWith({dataState: DataState.LOADED_STATE, appData: this.dataSubject.value}),
+        catchError((error: string) => {
+          this.filterSubject.next('');
+          return of({dataState: DataState.ERROR_STATE, error});
+        })
+      );
+  };
+
+  filterServers(status: Status): void {
+    this.appState$ = this.serverService.filter$(status, this.dataSubject.value)
+      .pipe(
+        map(response => {
           return {dataState: DataState.LOADED_STATE, appData: response}
         }),
         startWith({dataState: DataState.LOADED_STATE, appData: this.dataSubject.value}),
         catchError((error: string) => {
           this.filterSubject.next('');
-          return of({dataState: DataState.ERROR_STATE, error})
+          return of({dataState: DataState.ERROR_STATE, error});
         })
       );
   };
