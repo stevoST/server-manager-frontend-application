@@ -1,13 +1,14 @@
 import {Component, OnInit} from '@angular/core';
-import {ServerService} from "./service/server.service";
-import {BehaviorSubject, map, Observable, of, startWith} from "rxjs";
-import {AppState} from "./interface/app-state";
-import {CustomResponse} from "./interface/custom-response";
-import {DataState} from "./enum/data-state.enum";
-import {Status} from "./enum/status.enum";
-import {catchError} from "rxjs/operators";
-import {NgForm} from "@angular/forms";
-import {Server} from "./interface/server";
+import {ServerService} from './service/server.service';
+import {BehaviorSubject, map, Observable, of, startWith} from 'rxjs';
+import {AppState} from './interface/app-state';
+import {CustomResponse} from './interface/custom-response';
+import {DataState} from './enum/data-state.enum';
+import {Status} from './enum/status.enum';
+import {catchError} from 'rxjs/operators';
+import {NgForm} from '@angular/forms';
+import {Server} from './interface/server';
+import {NotificationService} from './service/notification.service';
 
 @Component({
   selector: 'app-root',
@@ -24,13 +25,14 @@ export class AppComponent implements OnInit {
   private isLoading = new BehaviorSubject<boolean>(false);
   isLoading$ = this.isLoading.asObservable();
 
-  constructor(private serverService: ServerService) {
+  constructor(private serverService: ServerService, private notificationService: NotificationService) {
   };
 
   ngOnInit(): void {
     this.appState$ = this.serverService.servers$
       .pipe(
         map(response => {
+          this.notificationService.onSuccess(response.message);
           this.dataSubject.next(response);
           return {
             dataState: DataState.LOADED_STATE,
@@ -39,6 +41,7 @@ export class AppComponent implements OnInit {
         }),
         startWith({dataState: DataState.LOADING_STATE}),
         catchError((error: string) => {
+          this.notificationService.onError(error);
           return of({dataState: DataState.ERROR_STATE, error});
         })
       );
@@ -53,12 +56,18 @@ export class AppComponent implements OnInit {
           const index = this.dataSubject.value.data.servers.findIndex(server =>
             server.id === response.data.server.id);
           this.dataSubject.value.data.servers[index] = response.data.server;
+          if (response.message.includes('success')) {
+            this.notificationService.onSuccess(response.message);
+          } else {
+            this.notificationService.onError(response.message);
+          }
           this.filterSubject.next('');
           return {dataState: DataState.LOADED_STATE, appData: this.dataSubject.value}
         }),
         startWith({dataState: DataState.LOADED_STATE, appData: this.dataSubject.value}),
         catchError((error: string) => {
           this.filterSubject.next('');
+          this.notificationService.onError(error);
           return of({dataState: DataState.ERROR_STATE, error});
         })
       );
@@ -73,12 +82,14 @@ export class AppComponent implements OnInit {
               ...response, data:
                 {servers: this.dataSubject.value.data.servers.filter(s => s.id !== server.id)}
             }
-          )
-          return {dataState: DataState.LOADED_STATE, appData: this.dataSubject.value}
+          );
+          this.notificationService.onDefault(response.message);
+          return {dataState: DataState.LOADED_STATE, appData: this.dataSubject.value};
         }),
         startWith({dataState: DataState.LOADED_STATE, appData: this.dataSubject.value}),
         catchError((error: string) => {
           this.filterSubject.next('');
+          this.notificationService.onError(error);
           return of({dataState: DataState.ERROR_STATE, error});
         })
       );
@@ -94,13 +105,15 @@ export class AppComponent implements OnInit {
           );
           document.getElementById('closeModal').click();
           this.isLoading.next(false);
-          serverForm.resetForm({status: this.Status.SERVER_DOWN})
-          return {dataState: DataState.LOADED_STATE, appData: this.dataSubject.value}
+          serverForm.resetForm({status: this.Status.SERVER_DOWN});
+          this.notificationService.onSuccess(response.message);
+          return {dataState: DataState.LOADED_STATE, appData: this.dataSubject.value};
         }),
         startWith({dataState: DataState.LOADED_STATE, appData: this.dataSubject.value}),
         catchError((error: string) => {
           this.isLoading.next(false);
-          return of({dataState: DataState.ERROR_STATE, error})
+          this.notificationService.onError(error);
+          return of({dataState: DataState.ERROR_STATE, error});
         })
       );
   };
@@ -109,11 +122,13 @@ export class AppComponent implements OnInit {
     this.appState$ = this.serverService.filter$(status, this.dataSubject.value)
       .pipe(
         map(response => {
-          return {dataState: DataState.LOADED_STATE, appData: response}
+          this.notificationService.onSuccess(response.message);
+          return {dataState: DataState.LOADED_STATE, appData: response};
         }),
         startWith({dataState: DataState.LOADED_STATE, appData: this.dataSubject.value}),
         catchError((error: string) => {
           this.filterSubject.next('');
+          this.notificationService.onError(error);
           return of({dataState: DataState.ERROR_STATE, error});
         })
       );
@@ -132,6 +147,7 @@ export class AppComponent implements OnInit {
     downloadLink.download = 'server-report.xls';
     downloadLink.click();
     document.body.removeChild(downloadLink);
+    this.notificationService.onDefault('Report Downloaded');
   }
 
 }

@@ -1,10 +1,10 @@
 import {Injectable} from '@angular/core';
-import {HttpClient, HttpErrorResponse} from "@angular/common/http";
-import {Observable, throwError} from "rxjs";
-import {catchError, tap} from "rxjs/operators";
-import {CustomResponse} from "../interface/custom-response";
-import {Server} from "../interface/server";
-import {Status} from "../enum/status.enum";
+import {HttpClient, HttpErrorResponse} from '@angular/common/http';
+import {Observable, throwError} from 'rxjs';
+import {catchError, tap} from 'rxjs/operators';
+import {CustomResponse} from '../interface/custom-response';
+import {Server} from '../interface/server';
+import {Status} from '../enum/status.enum';
 
 @Injectable({
   providedIn: 'root'
@@ -75,6 +75,6 @@ export class ServerService {
 
   private handleError(error: HttpErrorResponse): Observable<never> {
     console.log(error);
-    return throwError(`An Error occured - Error code: ${error.status}`);
+    return throwError(`An Error occurred - Error code: ${error.status}`);
   }
 }
